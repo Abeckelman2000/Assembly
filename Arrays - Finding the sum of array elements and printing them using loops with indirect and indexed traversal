@@ -1,0 +1,254 @@
+;Include our external functions library functions
+%include "./functions64.inc"
+
+SECTION .data
+	openPrompt	db	"CS-21 Chapter 4 Array Project", 0h
+	closePrompt	db	"Program ending, have a nice day", 0h
+	dataPrompt	db	"Our Data", 0h
+	firstDivide	db	"--------", 0h
+	
+	row1Prompt	db	"Row 1: ", 0h
+	row2Prompt 	db	"Row 2: ", 0h
+	row3Prompt	db	"Row 3: ", 0h
+	row4Prompt	db	"Row 4: ", 0h
+	transPrompt db 	"Below is the result of the additions of the four arrays", 0h
+	secondDiv	db	"=======================================================", 0h
+	resHex		db	"Results in Hex: ", 0h
+	resDec		db	"Results in Dec: ", 0h
+	
+	
+	; byte row
+	row1			db	10h, 20h, 30h, 40h
+		.sizeOf		equ ($ - row1)
+		.lengthOf	equ	($ - row1)
+		.type		equ (row1.sizeOf / row1.lengthOf)
+	
+	; word row
+	row2			dw	11h, 21h, 31h, 41h
+		.sizeOf 	equ ($ - row2)
+		.lengthOf	equ ($ - row2) / 2
+		.type		equ (row2.sizeOf / row2.lengthOf)
+	
+	; double-word row
+	row3			dd	12h, 22h, 32h, 42h
+		.sizeOf		equ ($ - row3)
+		.lengthOf	equ ($ - row3) / 4
+		.type		equ (row3.sizeOf / row3.lengthOf)
+		
+	; quad-word row
+	row4			dq	13h, 23h, 33h, 43h
+		.sizeOf		equ ($ - row4)
+		.lengthOf	equ ($ - row4) / 8
+		.type		equ (row4.sizeOf / row4.lengthOf)
+		
+	
+
+SECTION .bss
+
+	; empty qWord array, size of row 4, initial value of 0
+	results		TIMES row4.lengthOf resq	1
+		.sizeOf		equ ($ - results)
+		.lengthOf	equ ($ - results) / 8
+		.type		equ ( results.sizeOf / results.lengthOf) 
+		
+	
+
+
+SECTION     .text
+	global      _start
+
+_start:
+	nop
+	
+    push	openPrompt
+    call	PrintString
+    call	Printendl
+    
+    ; printing data section prompt
+    push	dataPrompt
+    call	PrintString
+    call	Printendl
+    
+    ; printing first dash divide
+    push	firstDivide
+    call	PrintString
+    call	Printendl
+    
+    ; printing "row1: "
+    push	row1Prompt
+    call	PrintString
+	
+	; printing row 1
+	mov		rsi, 0				; index register
+	mov		rcx, row1.lengthOf	; set loop counter
+	
+	
+	L1:
+		mov		rax, 0	; clear rax
+		mov 	al, [row1 + rsi]
+		push	QWORD	rax ; push address of val onto stack
+		call	Print64bitNumHex 
+		add		rsi, row1.type	; increment index
+		
+		call PrintSpace 
+		
+	loop L1
+	
+	call	Printendl 
+	
+	; printing "row2: "
+    push	row2Prompt
+    call	PrintString
+	
+	; printing row 2
+	mov		rsi, 0				; index register
+	mov		rcx, row2.lengthOf	; set loop counter
+	
+	L2:
+		mov		rax, 0 
+		mov		ax, [row2 + rsi]
+		push	QWORD	rax ; push address of val onto stack
+		call	Print64bitNumHex 
+		add		rsi, row2.type
+		
+		call PrintSpace 
+	loop L2
+	
+	call	Printendl 
+	
+	; printing "row3: "
+    push	row3Prompt
+    call	PrintString
+	
+	; printing row 3
+	mov		rsi, 0				; index register
+	mov		rcx, row3.lengthOf	; set loop counter
+	
+	
+	L3:
+		mov		rax, 0 ; clear the register
+		mov		eax, [row3 + rsi] ; move in double word
+		push	QWORD	rax ; push address of val onto stack
+		call	Print64bitNumHex
+		add		rsi, row3.type 	; increment index register
+		
+		call PrintSpace 
+	loop L3
+	
+	call	Printendl ; newline
+	
+	; printing "row 4: "
+    push	row4Prompt
+    call	PrintString
+	
+	; printing row 4
+	mov		rsi, 0				; index register
+	mov		rcx, row4.lengthOf	; set loop counter
+	
+	L4:
+		push	QWORD	[row4 + rsi] ; push address of val onto stack
+		call	Print64bitNumHex 
+		add		rsi, row4.type
+		
+		call PrintSpace 
+		
+	loop L4
+	
+	call Printendl 
+	
+	; creating results array
+
+    mov r8, 0                ;zero register
+    mov r9, 0                ;zero register
+    mov r10, 0                ;zero register
+    mov r11, 0                ;zero register
+    mov r12, 0                ;zero register
+    mov rcx, row1.lengthOf    ;loop counter
+    mov al, 0                ;zero register
+
+L5:
+    add al,  [r8  + row1]    ;adds row1 values
+    add al,  [r9  + row2]     ;adds row2 values
+    add al,  [r10  + row3]     ;adds row2 values
+    add ax,  [r11  + row4]     ;adds row2 values
+    add r8,  row1.type        ;increments counter
+    add r9,  row2.type
+    add r10, row3.type
+    add r11, row4.type
+    add [r12 + results], rax;moves al value into reserved array results
+    add r12, results.type    ;increments counter
+    mov al, 0
+ loop L5                    ;increments loop
+		
+	
+	; Printing the transition
+	push	transPrompt
+	call	PrintString
+	call	Printendl 
+	
+	 ; printing second divide
+    push	secondDiv ; 1st Layer
+    call	PrintString
+    call	Printendl  
+    
+    
+    ; Printing in hex prompt
+    push	resHex
+    call	PrintString
+    
+    ; Printing in hex
+    mov		rsi, 0				; index register
+	mov		rcx, results.lengthOf	; set loop counter
+	
+	L6:
+		mov 	rax, results ; move address of current element into rax
+		add 	rax, rsi ; add offset to land us at next element
+		push	QWORD	[rax] ; push address of val onto stack
+		call	Print64bitNumHex 
+		add		rsi, row4.type
+		
+		call PrintSpace 
+		
+	loop L6
+	
+	call Printendl ; newline
+    
+    
+    ; Printing in Dec prompt
+    push	resDec
+    call	PrintString
+
+	; Printing in Dec
+    mov		rsi, 0				; index register
+	mov		rcx, results.lengthOf	; set loop counter
+	
+	L7:
+		mov 	rax, results ; move address of current element into rax
+		add 	rax, rsi	; ; add offset to land us at next element
+		push	QWORD	[rax] ; push address of val onto stack
+		call	Print64bitNumDecimal 
+		add		rsi, row4.type
+		
+		call PrintSpace 
+		
+	loop L7
+    
+    call Printendl 
+    call Printendl 
+    
+    
+    push	closePrompt			;The prompt address - argument #1
+    call  	PrintString
+    call  	Printendl
+    
+    nop
+;
+;Setup the registers for exit and poke the kernel
+;Exit: 
+Exit:
+	mov		rax, 60					;60 = system exit
+	mov		rdi, 0					;0 = return code
+	syscall							;Poke the kernel
+=====================================================================================================================================================
+Contents of the  "functions64.inc" file was entirely written by KIP IRVINE from "Assembly Language for x86 Processors" textbook
+-----------------------------------------------------------------------------------------------------------------------------------------------------
